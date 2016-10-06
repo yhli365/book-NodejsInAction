@@ -55,6 +55,7 @@ function joinRoom(socket, room) {
         usersInRoomSummary += '.';
         socket.emit('message', { text: usersInRoomSummary });
     }
+    console.info('joinRoom#id=%s, room=%s, name=%s', socket.id, room, nickNames[socket.id]);
 }
 
 function handleNameChangeAttempts(socket, nickNames, namesUsed) {
@@ -78,6 +79,7 @@ function handleNameChangeAttempts(socket, nickNames, namesUsed) {
                 socket.broadcast.to(currentRoom[socket.id]).emit('message', {
                     text: previousName + ' is now known as ' + name + '.'
                 });
+                console.info('nameAttempt#id=%s, previousName=%s, name=%s', socket.id, previousName, name);
             } else {
                 socket.emit('nameResult', {
                     success: false,
@@ -93,11 +95,13 @@ function handleMessageBroadcasting(socket) {
         socket.broadcast.to(message.room).emit('message', {
             text: nickNames[socket.id] + ': ' + message.text
         });
+        console.info('handleMessageBroadcasting#id=%s, message=%s', socket.id, nickNames[socket.id] + ': ' + message.text);
     });
 }
 
 function handleRoomJoining(socket) {
     socket.on('join', function(room) {
+        console.info('handleRoomJoining#id=%s, previousRoom=%s, newRoom=%s', socket.id, currentRoom[socket.id], room.newRoom);
         socket.leave(currentRoom[socket.id]);
         joinRoom(socket, room.newRoom);
     });
@@ -105,6 +109,7 @@ function handleRoomJoining(socket) {
 
 function handleClientDisconnection(socket) {
     socket.on('disconnect', function() {
+        console.info('disconnect#id=%s, name=%s', socket.id, nickNames[socket.id]);
         var nameIndex = namesUsed.indexOf(nickNames[socket.id]);
         delete namesUsed[nameIndex];
         delete nickNames[socket.id];
